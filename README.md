@@ -10,7 +10,7 @@ Lhotse was developed as a counterpart to [k6](https://github.com/grafana/k6), as
 
 Install Lhotse the standard Go way 
 
-"`bash
+```bash
   go install github.com/oleiade/lhotse@latest
 ```
 
@@ -20,7 +20,7 @@ Install Lhotse the standard Go way
 
 #### Fixed duration
 
-"`bash
+```bash
 > time curl -X GET -i http://localhost:3434/latency/500ms
 HTTP/1.1 200 OK
 Allow: GET, OPTIONS
@@ -37,7 +37,7 @@ Executed in  508,63 millis    fish           external
 
 #### Within a latency range
 
-"`bash
+```bash
 > time curl -X GET -i http://localhost:3434/latency/500ms-1s
 HTTP/1.1 200 OK
 Allow: GET, OPTIONS
@@ -57,7 +57,7 @@ Executed in  620,86 millis    fish           external
 
 #### Of a fixed size
 
-"`bash
+```bash
 > curl -X GET -i http://localhost:3434/data/8b
 HTTP/1.1 200 OK
 Allow: GET, OPTIONS
@@ -71,7 +71,7 @@ TMtTCoaN
 
 #### With a size range
 
-"`bash
+```bash
 > curl -X GET -i http://localhost:3434/data/64b-128b
 HTTP/1.1 200 OK
 Allow: GET, OPTIONS
@@ -88,7 +88,7 @@ whTHctcuAxhxKQFDaFpLSjFbcXoEFfRsWxPLDnJObCsNVlgTeMaPEZQleQYhYzRyJjPjzpfRFEgmotaF
 
 The `/latency` endpoint instructs Lhotse to take either the specified duration or a random duration within the specified bounds to respond to a request.
 
-"`http
+```http
   GET /latency/${duration}
 ```
 
@@ -100,7 +100,7 @@ The `/latency` endpoint instructs Lhotse to take either the specified duration o
 
 The `/data` endpoint offers the user control of the type and size of the response produced by the server. The produced response payload will always be random. The size of the produced response payload will match either the exact value provided or will have an arbitrary size within the provided bounds. 
 
-"`http
+```http
   GET /data/${size}
 ```
 
