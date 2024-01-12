@@ -5,8 +5,6 @@ import (
 	"math/rand"
 	"strings"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // Latency represents a latency duration.
@@ -54,18 +52,14 @@ func ParseLatency(duration string) (latency Latency, err error) {
 func (l Latency) Wait() time.Duration {
 	// If the latency has no bounds, wait for the specified duration
 	if !l.HasBounds() {
-		log.WithFields(log.Fields{"latency": l.LowerBound}).Info("waiting")
 		time.Sleep(l.LowerBound)
-		log.Info("done waiting")
 		return l.LowerBound
 	}
 
 	waitTime := time.Duration(rand.Int63n(int64(l.UpperBound-l.LowerBound))) + l.LowerBound
 
 	// Wait for a random duration between the lower and upper bounds
-	log.WithFields(log.Fields{"latency": waitTime}).Info("waiting")
 	time.Sleep(waitTime)
-	log.WithFields(log.Fields{"latency": waitTime}).Info("waited")
 
 	return waitTime
 }
