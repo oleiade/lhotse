@@ -1,3 +1,4 @@
+//nolint:revive
 package main
 
 import (
@@ -13,12 +14,11 @@ type Latency struct {
 	UpperBound time.Duration
 }
 
-// FIXME: upper bound needs to be greater than lower bound
-// FIXME: explicit that only integer values are supported
-// ParseLatency parses a latency string and returns a Latency struct.
-// The latency string can be in the following formats:
-// 1. {value}{time unit identifier}
-// 2. {value}{time unit identifier}-{value}{time unit identifier}
+// ParseLatency parses a duration string and returns a Latency struct.
+//
+// The duration string should be in the format "lower-upper", where "lower" and "upper" are time durations.
+//
+// If the duration string is invalid or the upper bound is less than the lower bound, an error is returned.
 func ParseLatency(duration string) (latency Latency, err error) {
 	// Split the duration into the lower and upper bounds
 	bounds := strings.Split(duration, "-")
@@ -42,6 +42,12 @@ func ParseLatency(duration string) (latency Latency, err error) {
 		return
 	}
 
+	// If the upper bound is less than the lower bound, return an error
+	if latency.UpperBound < latency.LowerBound {
+		err = fmt.Errorf("upper bound is less than lower bound")
+		return
+	}
+
 	return
 }
 
@@ -49,6 +55,8 @@ func ParseLatency(duration string) (latency Latency, err error) {
 //
 // If the latency has upper and lower bounds, it waits for a random duration
 // between the lower and upper bounds. Otherwise it waits for the lower bound.
+//
+//nolint:gosec
 func (l Latency) Wait() time.Duration {
 	// If the latency has no bounds, wait for the specified duration
 	if !l.HasBounds() {

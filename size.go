@@ -1,20 +1,28 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 
 	"github.com/oleiade/gomme"
 )
 
-// FIXME: could be uint to ensure type safety
+// ByteUnit represents a byte unit.
 type ByteUnit int64
 
 const (
-	Byte     ByteUnit = 1
-	Kilobyte          = 1024 * Byte
-	Megabyte          = 1024 * Kilobyte
-	Gigabyte          = 1024 * Megabyte
+	// Byte represents a byte.
+	Byte ByteUnit = 1
+
+	// Kilobyte represents a kilobyte.
+	Kilobyte = 1024 * Byte
+
+	// Megabyte represents a megabyte.
+	Megabyte = 1024 * Kilobyte
+
+	// Gigabyte represents a gigabyte.
+	Gigabyte = 1024 * Megabyte
 )
 
 // ParseByteUnit parses a byte unit string and returns a ByteUnit.
@@ -33,14 +41,25 @@ func ParseByteUnit(u string) ByteUnit {
 	}
 }
 
+// Size represents a size.
 type Size struct {
 	LowerBound ByteUnit
 	UpperBound ByteUnit
 }
 
-// FIXME: bounds could be uint to ensure type safety
-func ParseSize(size string) (s Size, err error) {
-	alt := gomme.Map(
+// ParseSize parses a string representation of a size and returns a Size object.
+//
+// The size string should be in the format of a number followed by a unit (e.g., "10kb").
+//
+// The supported units are "b" for bytes, "kb" for kilobytes, "mb" for megabytes, and "gb" for gigabytes.
+//
+// The function returns an error if the size string is empty or if it cannot be parsed.
+func ParseSize(size string) (sizeObj Size, err error) {
+	if size == "" {
+		return sizeObj, errors.New("size cannot be empty")
+	}
+
+	sizeExpr := gomme.Map(
 		gomme.Pair(
 			gomme.Int64[string](),
 			gomme.Alternative(
@@ -56,30 +75,35 @@ func ParseSize(size string) (s Size, err error) {
 	)
 
 	parser := gomme.SeparatedPair(
-		alt,
+		sizeExpr,
 		gomme.Optional(gomme.Token[string]("-")),
-		gomme.Optional(alt),
+		gomme.Optional(sizeExpr),
 	)
 
 	bounds := parser(size)
 	if bounds.Err != nil {
-		return s, bounds.Err
+		return sizeObj, bounds.Err
 	}
 
 	if bounds.Output.Left != 0 {
-		s.LowerBound = ByteUnit(bounds.Output.Left)
+		sizeObj.LowerBound = ByteUnit(bounds.Output.Left)
 	}
 
 	if bounds.Output.Right != 0 {
-		s.UpperBound = ByteUnit(bounds.Output.Right)
+		sizeObj.UpperBound = ByteUnit(bounds.Output.Right)
 	}
 
-	return s, nil
+	return sizeObj, nil
 }
 
-var ErrNegativeBound = fmt.Errorf("bounds cannot be negative")
-var ErrUpperBoundGreaterThanLowerBound = fmt.Errorf("upper bound cannot be greater than lower bound")
+// ErrNegativeBound is returned when a bound is negative.
+var ErrNegativeBound = errors.New("bounds cannot be negative")
 
+// ErrUpperBoundGreaterThanLowerBound is returned when the upper bound is greater than the lower bound.
+var ErrUpperBoundGreaterThanLowerBound = errors.New("upper bound cannot be greater than lower bound")
+
+// Validate checks if the Size struct satisfies the defined constraints.
+// It returns an error if any of the constraints are violated.
 func (s Size) Validate() error {
 	if s.LowerBound < 0 {
 		return fmt.Errorf("lower bound is negative: %w", ErrNegativeBound)
@@ -119,11 +143,20 @@ func (s Size) HasBounds() bool {
 	return false
 }
 
-// TODO: we should support setting the kind of content we want: ascii, utf8, binary, etc...
+// Payload returns a byte slice containing a randomly generated payload.
+//
+// The size of the payload is determined by the LowerBound field of the Size struct.
+//
+// The payload is generated using the alphabet stored in the letterRunes array.
+//
+// If an upper bound is specified in the Size struct, the payload will be extended
+// to the upper bound with additional random bytes.
+//
+//nolint:gosec
 func (s Size) Payload() []byte {
 	// We store the alphabet used to generate the payload
 	// stactically on the Stack.
-	var letterRunes = [...]byte{
+	letterRunes := [...]byte{
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
 		'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
 		'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
@@ -149,6 +182,7 @@ func (s Size) Payload() []byte {
 		difference := s.UpperBound - s.LowerBound
 		addedSize := rand.Intn(int(difference))
 		for i := 0; i < addedSize; i++ {
+			//nolint:makezero
 			bytes = append(bytes, letterRunes[rand.Intn(len(letterRunes))])
 		}
 	}
