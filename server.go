@@ -48,6 +48,18 @@ func (s *ServerImpl) GetDataSize(ctx echo.Context, size string) error {
 		return ctx.String(http.StatusBadRequest, err.Error())
 	}
 
+	// Validate the size bounds
+	if err := sizeBounds.Validate(); err != nil {
+		slog.Error(
+			"failed validating size",
+			"handler", "GetDataSize",
+			"size", size,
+			"error_message", err.Error(),
+		)
+
+		return ctx.String(http.StatusBadRequest, err.Error())
+	}
+
 	// Write the data to the response
 	payload := sizeBounds.Payload()
 
@@ -69,7 +81,21 @@ func (s *ServerImpl) GetLatencyDuration(ctx echo.Context, duration string) error
 			"duration", duration,
 			"error_message", err.Error(),
 		)
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed parsing latency duration: %s", err))
+
+		// return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed parsing latency duration: %s", err))
+		return ctx.String(http.StatusBadRequest, err.Error())
+	}
+
+	// Validate the latency duration
+	if err := latency.Validate(); err != nil {
+		slog.Error(
+			"failed validating latency duration",
+			"handler", "GetLatencyDuration",
+			"duration", duration,
+			"error_message", err.Error(),
+		)
+
+		return ctx.String(http.StatusBadRequest, err.Error())
 	}
 
 	// Wait for the specified duration

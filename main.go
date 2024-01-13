@@ -11,6 +11,7 @@ import (
 	slogecho "github.com/samber/slog-echo"
 )
 
+//nolint:forbidigo
 func main() {
 	// Create a logger instance
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -36,9 +37,13 @@ func main() {
 		// Initiate graceful shutdown
 		if shutdownErr := e.Shutdown(context.Background()); shutdownErr != nil {
 			slog.Error("Failed to shutdown server", "error_message", shutdownErr.Error())
+			return
 		}
 	}()
 
 	// Start the server
-	e.Start(":3434")
+	if err := e.Start(":3434"); err != nil {
+		slog.Error("Failed to start server", "error_message", err.Error())
+		return
+	}
 }

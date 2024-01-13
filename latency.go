@@ -42,13 +42,24 @@ func ParseLatency(duration string) (latency Latency, err error) {
 		return
 	}
 
-	// If the upper bound is less than the lower bound, return an error
-	if latency.UpperBound < latency.LowerBound {
-		err = fmt.Errorf("upper bound is less than lower bound")
-		return
+	return
+}
+
+// Validate checks if the Latency struct satisfies the defined constraints.
+func (l Latency) Validate() error {
+	if l.LowerBound < 0 {
+		return fmt.Errorf("lower bound is negative: %w", ErrNegativeBound)
 	}
 
-	return
+	if l.UpperBound < 0 {
+		return fmt.Errorf("upper bound is negative: %w", ErrNegativeBound)
+	}
+
+	if l.UpperBound > 0 && l.LowerBound > l.UpperBound {
+		return ErrUpperBoundGreaterThanLowerBound
+	}
+
+	return nil
 }
 
 // Wait waits for the duration held by the latency.
@@ -67,7 +78,7 @@ func (l Latency) Wait() time.Duration {
 	waitTime := time.Duration(rand.Int63n(int64(l.UpperBound-l.LowerBound))) + l.LowerBound
 
 	// Wait for a random duration between the lower and upper bounds
-	time.Sleep(waitTime)
+	<-time.After(waitTime)
 
 	return waitTime
 }

@@ -22,9 +22,6 @@ issues:
    - linters:
      - staticcheck # Tracked in https://github.com/grafana/xk6-grpc/issues/14
      text: "The entire proto file grpc/reflection/v1alpha/reflection.proto is marked as deprecated."
-   - linters:
-     - forbidigo
-     text: 'use of `os\.(SyscallError|Signal|Interrupt)` forbidden'
 
 linters-settings:
   exhaustive:

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strings"
 
 	"github.com/oleiade/gomme"
 )
@@ -27,7 +28,7 @@ const (
 
 // ParseByteUnit parses a byte unit string and returns a ByteUnit.
 func ParseByteUnit(u string) ByteUnit {
-	switch u {
+	switch strings.ToLower(u) {
 	case "b":
 		return Byte
 	case "kb":
