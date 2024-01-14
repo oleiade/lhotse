@@ -1,3 +1,4 @@
+// Package lhotse implements a simple HTTP server that responds with data of a specified size or after a specified latency.
 package main
 
 import (
@@ -11,6 +12,8 @@ import (
 
 // ServerImpl is an implementation of the OpenAPI ServerInterface.
 type ServerImpl struct{}
+
+var _ ServerInterface = &ServerImpl{}
 
 // Get handles the root endpoint request.
 //
@@ -112,4 +115,40 @@ func (s *ServerImpl) GetLatencyDuration(ctx echo.Context, duration string) error
 type latencyResponse struct {
 	// Waited indicates the duration that was waited before responding.
 	Waited time.Duration `json:"waited"`
+}
+
+// GetResponse is a handler that returns a response with the specified status code, content type, and body.
+func (s *ServerImpl) GetResponse(ctx echo.Context, params GetResponseParams) error {
+	// Default status
+	status := http.StatusOK
+
+	// Get status from query parameter
+	if params.Status != nil {
+		status = *params.Status
+	}
+
+	// Get content type from header
+	contentType := ctx.Request().Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "text/plain"
+	}
+	ctx.Response().Header().Set(echo.HeaderContentType, contentType)
+
+	// Handle no content scenarios
+	if status == http.StatusNoContent || status == http.StatusResetContent {
+		return ctx.NoContent(status)
+	}
+
+	if contentType == "application/json" {
+		body := map[string]interface{}{
+			"status":       status,
+			"content_type": contentType,
+		}
+		return ctx.JSON(status, body)
+	} else if contentType == "text/plain" {
+		body := "Custom response body based on parameters"
+		return ctx.String(status, body)
+	}
+
+	return nil
 }

@@ -22,6 +22,9 @@ type ServerInterface interface {
 	// Get Latency
 	// (GET /latency/{duration})
 	GetLatencyDuration(ctx echo.Context, duration string) error
+	// Custom Response Endpoint
+	// (GET /response)
+	GetResponse(ctx echo.Context, params GetResponseParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -70,6 +73,24 @@ func (w *ServerInterfaceWrapper) GetLatencyDuration(ctx echo.Context) error {
 	return err
 }
 
+// GetResponse converts echo context to params.
+func (w *ServerInterfaceWrapper) GetResponse(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetResponseParams
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "status", ctx.QueryParams(), &params.Status)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter status: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetResponse(ctx, params)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -93,13 +114,12 @@ func RegisterHandlers(router EchoRouter, si ServerInterface) {
 // Registers handlers, and prepends BaseURL to the paths, so that the paths
 // can be served under a prefix.
 func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
-
 	wrapper := ServerInterfaceWrapper{
 		Handler: si,
 	}
 
-	router.OPTIONS(baseURL+"/", wrapper.Get)
+	router.GET(baseURL+"/", wrapper.Get)
 	router.GET(baseURL+"/data/:size", wrapper.GetDataSize)
 	router.GET(baseURL+"/latency/:duration", wrapper.GetLatencyDuration)
-
+	router.GET(baseURL+"/response", wrapper.GetResponse)
 }

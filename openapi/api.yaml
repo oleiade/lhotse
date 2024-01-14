@@ -55,3 +55,27 @@ paths:
                 format: binary
         '400':
           description: Bad request if size is missing or invalid
+
+  /response:
+    get:
+      summary: Custom Response Endpoint
+      description: Allows clients to specify the response status, content-type, and body inclusion.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int
+          description: HTTP status code of the response.
+      responses:
+        '200':
+          description: Custom response with body.
+          content:
+            '*/*': # This allows for any content type specified by the client.
+              schema:
+                type: string
+        '204':
+          description: No content response.
+        '205':
+          description: No content response, instructs the client to reset the document view.
