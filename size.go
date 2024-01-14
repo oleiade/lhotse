@@ -156,7 +156,7 @@ func (s Size) HasBounds() bool {
 //nolint:gosec
 func (s Size) Payload() []byte {
 	// We store the alphabet used to generate the payload
-	// stactically on the Stack.
+	// statically on the Stack.
 	letterRunes := [...]byte{
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
 		'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',

@@ -1,4 +1,3 @@
-//nolint:revive
 package main
 
 import (
@@ -94,7 +93,7 @@ func (l Latency) String() string {
 
 // HasBounds returns true if the latency has upper and lower bounds
 // and false otherwise.
-func (l *Latency) HasBounds() bool {
+func (l Latency) HasBounds() bool {
 	// Neither bound is set
 	if l.LowerBound == 0 && l.UpperBound == 0 {
 		return false
