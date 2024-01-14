@@ -1,4 +1,10 @@
-# Lhotse
+<p style="text-align: center"><img src="logo.png" alt="lhotse logo"/></p>
+<h1 style="text-align: center">Lightweight HTTP server with controllable performance</h1>
+
+<p style="text-align: center">
+    <a href="https://github.com/oleiade/lhotse/releases"><img src="https://img.shields.io/github/release/oleiade/lhotse.svg" alt="release"></a>
+    <a href="https://github.com/oleiade/lhotse/actions/workflows/build.yml"><img src="https://github.com/oleiade/lhotse/actions/workflows/build.yml/badge.svg" alt="Build status"></a>
+</p>
 
 Lhotse is a lightweight HTTP server designed for controlled performance testing.
 It facilitates dictating the server's behavior, such as introducing specific latencies or generating responses of varying sizes.
