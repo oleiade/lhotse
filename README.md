@@ -1,27 +1,34 @@
 # Lhotse
 
-Lhotse is a tiny HTTP server with controllable performance.
-
-Lhotse lets you specify, directly in your request, the expected specific (or range of) performance of the server as it handles it. For instance, Lhotse supports setting the latency it should introduce as it produces a response to a request or lets you control the size of the response it's going to produce.
-
-Lhotse was developed as a counterpart to [k6](https://github.com/grafana/k6), as a way of measuring its accuracy, as well as validating its behavior, to eventually facilitate improving and debugging it.
+Lhotse is a lightweight HTTP server designed for controlled performance testing.
+It facilitates dictating the server's behavior, such as introducing specific latencies or generating responses of varying sizes.
+Developed to complement [k6](https://github.com/grafana/k6), Lhotse is an excellent tool for measuring [k6](https://github.com/grafana/k6)'s  accuracy and assisting in its improvement and debugging.
 
 ## Installation
 
-Install Lhotse the standard Go way 
+Install Lhotse using Go:
 
 ```bash
-  go install github.com/oleiade/lhotse@latest
+go install github.com/oleiade/lhotse@latest
 ```
 
-## Usage/Examples
+## Usage & Examples
 
-### Controlling server's latency
+Lhotse provides functionalities such as latency simulation, data response control, and custom response generation.
 
-#### Fixed duration
+Here are some examples:
 
+### Latency Control
+
+#### Fixed Duration
+
+Command:
 ```bash
-> time curl -X GET -i http://localhost:3434/latency/500ms
+time curl -X GET -i http://localhost:3434/latency/500ms
+```
+
+Output:
+```bash
 HTTP/1.1 200 OK
 Allow: GET, OPTIONS
 Date: Tue, 01 Nov 2022 18:15:37 GMT
@@ -29,16 +36,17 @@ Content-Length: 12
 Content-Type: text/plain; charset=utf-8
 
 waited 500ms
-________________________________________________________
-Executed in  508,63 millis    fish           external 
-   usr time    7,72 millis  315,00 micros    7,41 millis 
-   sys time    0,09 millis   86,00 micros    0,00 millis
 ```
 
-#### Within a latency range
+#### Latency Range
 
+Command:
 ```bash
-> time curl -X GET -i http://localhost:3434/latency/500ms-1s
+curl -X GET -i http://localhost:3434/latency/500ms-1s
+```
+
+Output:
+```bash
 HTTP/1.1 200 OK
 Allow: GET, OPTIONS
 Date: Tue, 01 Nov 2022 18:16:43 GMT
@@ -46,19 +54,19 @@ Content-Length: 19
 Content-Type: text/plain; charset=utf-8
 
 waited 610.839158ms
-________________________________________________________
-Executed in  620,86 millis    fish           external 
-   usr time    9,02 millis  403,00 micros    8,62 millis 
-   sys time    0,11 millis  110,00 micros    0,00 millis
 ```
 
-### Producing a response payload
+### Data Response Control
 
+#### Fixed Size
 
-#### Of a fixed size
-
+Command:
 ```bash
-> curl -X GET -i http://localhost:3434/data/8b
+curl -X GET -i http://localhost:3434/data/8b
+```
+
+Output:
+```bash
 HTTP/1.1 200 OK
 Allow: GET, OPTIONS
 Date: Tue, 01 Nov 2022 18:14:12 GMT
@@ -68,11 +76,15 @@ Content-Type: text/plain; charset=utf-8
 TMtTCoaN
 ```
 
+#### Size Range
 
-#### With a size range
-
+Command:
 ```bash
-> curl -X GET -i http://localhost:3434/data/64b-128b
+curl -X GET -i http://localhost:3434/data/64b-128b
+```
+
+Output:
+```bash
 HTTP/1.1 200 OK
 Allow: GET, OPTIONS
 Date: Tue, 01 Nov 2022 18:13:02 GMT
@@ -82,28 +94,87 @@ Content-Type: text/plain; charset=utf-8
 whTHctcuAxhxKQFDaFpLSjFbcXoEFfRsWxPLDnJObCsNVlgTeMaPEZQleQYhYzRyJjPjzpfRFEgmotaFetHsbZRjxAwnwekrBEmfdzdcEkXBAkjQZLCt
 ```
 
+### Custom Response Control
+
+#### Custom Status Code
+
+Command:
+```bash
+curl -X GET -i http://localhost:3434/response?status=204
+```
+
+Output:
+```bash
+HTTP/1.1 204 No Content
+Content-Type: text/plain
+Date: Sun, 14 Jan 2024 10:17:35 GMT
+```
+
+#### Custom content-type
+
+Command:
+```bash
+curl -i -X GET --header 'Content-Type: application/json' http://localhost:3434/response
+```
+
+Output:
+```bash
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Sun, 14 Jan 2024 10:18:36 GMT
+Content-Length: 49
+
+{"content_type":"application/json","status":200}
+```
+
 ## API Reference
 
-#### Control latency
+#### Latency Control
 
-The `/latency` endpoint instructs Lhotse to take either the specified duration or a random duration within the specified bounds to respond to a request.
+Endpoint `/latency/{duration}` simulates a response delay.
 
 ```http
   GET /latency/${duration}
 ```
 
-| Parameter  | Type     | Description                                                                                                                                                                                                                                                                                                                                                                                                                |
-| :--------- | :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `duration` | `string` | **Required**. Duration Lhotse will sleep before replying to the request. It can either be specified as a single duration of the form {value}{unit}, or as a range {lowerBound}-{upperBound}. The value should always be an unsigned integer value. Valid units are `ns`, `us`, `ms`, `s`, `m', and `h`. When specifying a range, `lowerBound` needs to be less than `upperBound`; as a result, the time it takes for the server to respond will be a random duration between those bounds. |
+| Parameter  | Type     | Description                                                                                   |
+|:-----------|:---------|:----------------------------------------------------------------------------------------------|
+| `duration` | `string` | Specifies the delay before responding. Use {value}{unit} or {lowerBound}-{upperBound} format. |
 
-#### Control data volume
+#### Data Volume Control
 
-The `/data` endpoint offers the user control of the type and size of the response produced by the server. The produced response payload will always be random. The size of the produced response payload will match either the exact value provided or will have an arbitrary size within the provided bounds. 
+Endpoint `/data/{size}` controls the response size.
 
 ```http
   GET /data/${size}
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `size`      | `string` | **Required**. Size of the payload produced by Lhotse. It can either be specified as a single size of the form {value}{unit}, or as a range {lowerBound}-{upperBound}. The value should always be an unsigned integer value. Valid units are `b`, `kb`, `mb`, and `gb`. When specifying a range, `lowerBound` needs to be less than `upperBound`, and as a result, the produced payload will be of a random size somewhere between those bounds. |
+| Parameter | Type     | Description                                                                                                                                                                                                                                                                                                                                                                                                                       |
+|:----------|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `size`    | `string` | Size of the payload produced by Lhotse. It can either be specified as a single size of the form {value}{unit}, or as a range {lowerBound}-{upperBound}. The value should always be an unsigned integer value. Valid units are `b`, `kb`, `mb`, and `gb`. When specifying a range, `lowerBound` needs to be less than `upperBound`, and as a result, the produced payload will be of a random size somewhere between those bounds. |
+
+#### Custom Response Control
+
+Endpoint `/response` allows customization of the response.
+
+```http
+  GET /response?status=${status}
+```
+
+##### Query Parameters
+
+| Parameter | Type     | Description                                      |
+|:----------|:---------|:-------------------------------------------------|
+| `status`  | `string` | Specifies the HTTP status code for the response. |
+
+##### Headers
+
+| Header         | Type     | Description                                                                                                 |
+|:---------------|:---------|:------------------------------------------------------------------------------------------------------------|
+| `Content-Type` | `string` | Determines the `Content-Type` of the response. Currently `text/plain` and `application/json` are supported. |
+
+## Contributing
+Contributions to Lhotse are welcome! Whether it's bug reports, feature requests, or code contributions, please feel free to contribute. For more details, see CONTRIBUTING.md.
+
+## License
+Lhotse is open-sourced under the MIT License.
